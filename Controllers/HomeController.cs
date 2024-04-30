@@ -5,17 +5,20 @@ using WebScrappersApplication.Models;
 using WebScrappersApplication;
 using System.Diagnostics.Eventing.Reader;
 using WebScrappersApplication.Data;
+using System.Xml;
+using Microsoft.Identity.Client;
+using WebScrappersApplication.Migrations;
 
 namespace WebScrappersApplication.Controllers
 {
     public class HomeController : Controller
     {
-         private readonly ILogger<HomeController> _logger;
+        private readonly ILogger<HomeController> _logger;
         private readonly AppdbContext db;
-        public HomeController(ILogger<HomeController> logger,AppdbContext _db)
+        public HomeController(ILogger<HomeController> logger, AppdbContext _db)
         {
             _logger = logger;
-            db= _db;
+            db = _db;
         }
         public static List<string> urllist;
 
@@ -33,27 +36,24 @@ namespace WebScrappersApplication.Controllers
 
 
             ];
-               //take keyword from user
+            //take keyword from user
 
-          var keyword= key["key"];
-           
+            var keyword = key["key"];
 
-            foreach (string url in urls) {
+
+            foreach (string url in urls)
+            {
 
                 HttpClient client = new HttpClient();
                 var res = client.GetStringAsync(url).Result;
 
                 HtmlDocument htmlDocument = new HtmlDocument();
                 htmlDocument.LoadHtml(res);
-
-
                 urllist = TraverseHtmlNodes(htmlDocument.DocumentNode, keyword, url);
-               
 
             }
 
-
-           List<Products> productsList2= GetDetais(urllist, keyword);
+            List<Products> productsList2 = GetDetais(urllist, keyword);
 
             return View(productsList2);
         }
@@ -70,9 +70,9 @@ namespace WebScrappersApplication.Controllers
 
                 HtmlDocument htmlDocument2 = new HtmlDocument();
                 htmlDocument2.LoadHtml(res);
-              
-                Productdetails= TraverseNodes(htmlDocument2.DocumentNode, link, keyword);
-
+                Productdetails = TraverseNodes(htmlDocument2.DocumentNode, link, keyword);
+                
+                
             }
             return Productdetails;
         }
@@ -88,6 +88,7 @@ namespace WebScrappersApplication.Controllers
 
                 foreach (var childNode in node.ChildNodes)
                 {
+
                     if (childNode.Attributes.Contains("href"))
                     {
 
@@ -99,6 +100,7 @@ namespace WebScrappersApplication.Controllers
                             urllinks.Add(new Uri(baseUri, links).AbsoluteUri);
 
                         }
+
                     }
                     TraverseHtmlNodes(childNode, keyword, url);
                 }
@@ -106,30 +108,71 @@ namespace WebScrappersApplication.Controllers
             }
             return urllinks;
         }
-        public  List<Products> productsList = new List<Products>();
+        public List<Products> productsList = new List<Products>();
 
-        public List<Products>  TraverseNodes(HtmlNode node, string url, string keyword)
+        public List<Products> TraverseNodes(HtmlNode node, string url, string keyword)
         {
             Products p = new Products();
 
+            //for images
+
+             List<string> imageUrls = new List<string>();
+
+            //var imgLinks = node.SelectNodes("//img");
+
+            foreach (var image in node.SelectNodes("//img[@src]"))
+            {
+                string imageUrl = image.Attributes["src"].Value.Trim();
+
+
+                if (imageUrl.Contains(".jpg") || imageUrl.Contains(".jpeg"))
+                {
+                    if (!imageUrl.Contains("logo"))
+                    {
+                        imageUrls.Add(imageUrl);
+                        p.imgUrl = imageUrl;
+                        break;
+                    }
+                    else
+                    {
+                        imageUrls.Add("https://www.hindustantimes.com/brand-post/vivo-mobiles-under-rs-15-000-that-you-should-go-for-in-2021-101623144721683.html");
+                        p.imgUrl = imageUrl;
+                        break;
+
+                    }
+                }
+                else
+                {
+                    imageUrls.Add("https://www.hindustantimes.com/brand-post/vivo-mobiles-under-rs-15-000-that-you-should-go-for-in-2021-101623144721683.html");
+                    p.imgUrl = imageUrl;
+                    break;
+
+                }
+                    
+                
+            }
+
             //Heading
+            
             var headerTags = new string[] { "h1", "h2", "h3", "p" };
-            // var title=node.SelectSingleNode("//h1").InnerText;
+
             var h1nodes = node.SelectSingleNode("//h1");
             var h2nodes = node.SelectSingleNode("//h2");
             var pnodes = node.SelectSingleNode("//span");
 
             if (h1nodes != null)
             {
-                // var header = node.SelectSingleNode("//h1").InnerHtml.Contains(keyword);
-                //Console.WriteLine(h1nodes.InnerText);
-                //Console.WriteLine(url);
                 p.Name = h1nodes.InnerText.Trim();
                 p.url = url.Trim();
                 var parent = h1nodes.ParentNode;
                 var fullNode = parent.SelectNodes("//span");
+
+
+
+                //for getting price
                 foreach (var sNode in fullNode)
                 {
+
                     if (sNode.InnerText.Contains("$"))
                     {
                         p.Price = sNode.InnerText.Replace("$", "");

@@ -11,5 +11,8 @@ namespace WebScrappersApplication.Models
         public string?  url { get; set; }
         public string? Price { get; set; }
 
+        public string? imgUrl { get; set; }
+      
+
     }
 }
