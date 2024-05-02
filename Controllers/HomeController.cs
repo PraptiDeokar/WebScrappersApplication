@@ -28,7 +28,8 @@ namespace WebScrappersApplication.Controllers
         }
         public IActionResult Index(IFormCollection key)
         {
-            List<string> urls = ["https://www.reliancedigital.in/search?q=:relevance:productTags:affordable-mobiles" ,
+            List<string> urls = [
+                "https://www.reliancedigital.in/search?q=:relevance:productTags:affordable-mobiles" ,
              "https://www.shopclues.com/smartphone-sales.html",
             "https://www.vijaysales.com/mobiles-and-tablets/brand",
             "https://www.croma.com/phones-wearables/c/1",
@@ -119,38 +120,73 @@ namespace WebScrappersApplication.Controllers
              List<string> imageUrls = new List<string>();
 
             //var imgLinks = node.SelectNodes("//img");
+            var links = node.SelectNodes("//img[@src]");
 
-            foreach (var image in node.SelectNodes("//img[@src]"))
+
+            foreach (var image in links)
             {
-                string imageUrl = image.Attributes["src"].Value.Trim();
+                var src = image.Attributes["src"].Value;
 
 
-                if (imageUrl.Contains(".jpg") || imageUrl.Contains(".jpeg"))
+                if (image.Attributes["src"].Value.Contains("jpg") || image.Attributes["src"].Value.Contains("jpeg"))
                 {
-                    if (!imageUrl.Contains("logo"))
+
+                    string imageUrl = image.Attributes["src"].Value.Trim();
+                    imageUrls.Add(imageUrl);
+                    continue; ;
+
+                }
+                else if (image.Attributes["src"].Value.Contains("png"))
+                {
+                    if (image.Attributes["alt"] != null && image.Attributes["alt"].Value.ToLower().Contains(keyword))
                     {
+                        string imageUrl = image.Attributes["src"].Value.Trim();
                         imageUrls.Add(imageUrl);
-                        p.imgUrl = imageUrl;
-                        break;
+                        p.imgUrl = imageUrl;//
+                        continue;
                     }
                     else
                     {
-                        imageUrls.Add("https://www.hindustantimes.com/brand-post/vivo-mobiles-under-rs-15-000-that-you-should-go-for-in-2021-101623144721683.html");
-                        p.imgUrl = imageUrl;
-                        break;
 
+                        continue;
                     }
+
                 }
                 else
                 {
-                    imageUrls.Add("https://www.hindustantimes.com/brand-post/vivo-mobiles-under-rs-15-000-that-you-should-go-for-in-2021-101623144721683.html");
-                    p.imgUrl = imageUrl;
-                    break;
-
+                    continue;
                 }
-                    
-                
             }
+
+                ////  string imageUrl = image.Attributes["src"].Value.Trim();
+
+
+                //  if (imageUrl.Contains(".jpg") || imageUrl.Contains(".jpeg"))
+                //  {
+                //      if (!imageUrl.Contains("logo"))
+                //      {
+                //         imageUrls.Add(imageUrl);
+                //          p.imgUrl = imageUrl;
+                //          break;
+                //      }
+                //      else
+                //      {
+                //          imageUrls.Add("https://www.hindustantimes.com/brand-post/vivo-mobiles-under-rs-15-000-that-you-should-go-for-in-2021-101623144721683.html");
+                //          p.imgUrl = imageUrl;
+                //          break;
+
+                //      }
+                //  }
+                //  else
+                //  {
+                //      imageUrls.Add("https://www.hindustantimes.com/brand-post/vivo-mobiles-under-rs-15-000-that-you-should-go-for-in-2021-101623144721683.html");
+                //      p.imgUrl = imageUrl;
+                //      break;
+
+                //  }
+
+
+            
 
             //Heading
             
