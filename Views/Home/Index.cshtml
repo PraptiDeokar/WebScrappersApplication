@@ -9,9 +9,9 @@
         </div>
     </div>
     <div class="container">
-        <table class="table table-bordered table-striped">
+        <table class="table table-borderless">
             <thead>
-                <tr>
+                @* <tr>
                     <th>
                         Title
                     </th>
@@ -20,15 +20,19 @@
                     </th>
                     <th>URL</th>
                     <th></th>
-                </tr>
+                </tr> *@
             </thead>
             <tbody>
                 @foreach (var obj in Model)
                 {
                     <tr>
-                        <td>@obj.Name</td>
-                        <td>@obj.Price</td>
-                        <td><a href="@obj.url" target="_blank">@obj.url </a></td>
+                        <td><img src="@obj.imgUrl" class="card-img-top rounded" height="180px" width="110px"/></td>
+                        <td>@obj.Name
+                        <br/>
+                        <b>Price</b>@obj.Price
+                        <br/>
+                        <a href="@obj.url" target="_blank">For more information click here </a>
+                        </td>
                     </tr>
                 }
             </tbody>

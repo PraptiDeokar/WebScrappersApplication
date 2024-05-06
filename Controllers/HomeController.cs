@@ -29,11 +29,11 @@ namespace WebScrappersApplication.Controllers
         public IActionResult Index(IFormCollection key)
         {
             List<string> urls = [
-                "https://www.reliancedigital.in/search?q=:relevance:productTags:affordable-mobiles" ,
-             "https://www.shopclues.com/smartphone-sales.html",
-            "https://www.vijaysales.com/mobiles-and-tablets/brand",
-            "https://www.croma.com/phones-wearables/c/1",
-            "https://www.sahivalue.com/categories/buy-refurbished-second-hand-samsung-galaxy-mobile-phone-fold/293890000027150104"
+         "https://www.reliancedigital.in/search?q=:relevance:productTags:affordable-mobiles" ,
+          //  "https://www.shopclues.com/smartphone-sales.html",
+          "https://www.vijaysales.com/mobiles-and-tablets/brand",
+           // "https://www.croma.com/phones-wearables/c/1",
+           // "https://www.sahivalue.com/categories/buy-refurbished-second-hand-samsung-galaxy-mobile-phone-fold/293890000027150104"
 
 
             ];
@@ -85,7 +85,7 @@ namespace WebScrappersApplication.Controllers
 
             if (node.InnerHtml.Contains(keyword))
             {
-                var baseUri = new Uri(url);
+                Uri baseUri = new Uri(url);
 
                 foreach (var childNode in node.ChildNodes)
                 {
@@ -122,29 +122,61 @@ namespace WebScrappersApplication.Controllers
             //var imgLinks = node.SelectNodes("//img");
             var links = node.SelectNodes("//img[@src]");
 
-
+            Uri baseUri = new Uri(url);
             foreach (var image in links)
             {
-                var src = image.Attributes["src"].Value;
+              //  var src = image.Attributes["data-srcset"].Value;
 
 
                 if (image.Attributes["src"].Value.Contains("jpg") || image.Attributes["src"].Value.Contains("jpeg"))
                 {
-
-                    string imageUrl = image.Attributes["src"].Value.Trim();
-                    imageUrls.Add(imageUrl);
-                    continue; ;
-
+                    if (image.Attributes["data-srcset"] != null)
+                    {
+                        string imageUrl = image.Attributes["data-srcset"].Value.Trim();
+                        imageUrls.Add(new Uri(baseUri, imageUrl).AbsoluteUri);
+                        p.imgUrl = new Uri(baseUri, imageUrl).AbsoluteUri + imageUrl;
+                        break;
+                    }
+                    
                 }
+                
                 else if (image.Attributes["src"].Value.Contains("png"))
                 {
-                    if (image.Attributes["alt"] != null && image.Attributes["alt"].Value.ToLower().Contains(keyword))
+                    if (image.Attributes["data-original"] != null && image.Attributes["data-original"].Value.Contains("product"))
                     {
-                        string imageUrl = image.Attributes["src"].Value.Trim();
+                        string imageUrl = image.Attributes["data-original"].Value.Trim();
                         imageUrls.Add(imageUrl);
-                        p.imgUrl = imageUrl;//
-                        continue;
+                        p.imgUrl = imageUrl;
+                        break;
+
                     }
+                    else if (image.Attributes["alt"] != null && image.Attributes["alt"].Value.ToLower().Contains(keyword))
+                    {
+                        string imageUrl = image.Attributes["data-srcset"].Value.Trim();
+                        imageUrls.Add(new Uri(baseUri, imageUrl).AbsoluteUri);
+                        p.imgUrl = new Uri(baseUri, imageUrl).AbsoluteUri;
+
+                        break;
+                    }
+                    else if (image.Attributes["alt"] != null && image.Attributes["alt"].Value.ToLower().Contains("img"))
+                    {
+                        if (image.Attributes["data-srcset"] == null)
+                        {
+                            string imageUrl = image.Attributes["src"].Value.Trim();
+                            imageUrls.Add(imageUrl);
+                            p.imgUrl = imageUrl;
+                            break;
+                        }
+                        
+                        else
+                        {
+                            string imageUrl = image.Attributes["data-srcset"].Value.Trim();
+                            imageUrls.Add(new Uri(baseUri, imageUrl).AbsoluteUri);
+                            p.imgUrl = new Uri(baseUri, imageUrl).AbsoluteUri + imageUrl;
+                            break;
+                        }
+                    }
+                    
                     else
                     {
 
@@ -152,6 +184,7 @@ namespace WebScrappersApplication.Controllers
                     }
 
                 }
+                
                 else
                 {
                     continue;
